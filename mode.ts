@@ -66,39 +66,80 @@ const twilioClient = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_A
         console.log("Received WhatsApp message from", from, "with body:", body);
 
         // Check if the body contains a Twitter username
-        const twitterUsernameMatch = body.match(/\b\w+\b$/); // Match last word in the body
+        const Match = body.match(/\b\w+\b$/); // Match last word in the body
+        const twitterFetch = body.includes('twitter');
+        const addressfetch = body.includes('cookie')
 
-        if (twitterUsernameMatch) {
+        if (twitterFetch) {
             // Extract the Twitter username from the body (last word)
-            const twitterUsername = twitterUsernameMatch[0];
+            const twitterUsername = Match[0];
             console.log("Detected Twitter username:", twitterUsername);
-    
+
             // Fetch Twitter username details
             try {
                 const response = await axios.get(`http://localhost:3005/api/agents/twitter/${twitterUsername}`);
-                
+
                 // Check what the response data contains
                 console.log("Fetched Twitter data:", response.data);
-    
+
                 // Extract details from the response
                 const twitterDetails = response.data.ok;  // The 'ok' field contains the relevant details
-                
+
                 if (twitterDetails) {
                     // Construct the message with all the important details
                     body = `Here is the details from cookies.fun 'Agent Name: ${twitterDetails.agentName} &` +
-                           `Market Cap: ${twitterDetails.marketCap} &` +
-                           `Mindshare: ${twitterDetails.mindshare} (${twitterDetails.mindshareDeltaPercent}%) &` +
-                           `Price: ${twitterDetails.price} (${twitterDetails.priceDeltaPercent}%) &` +
-                           `Liquidity: ${twitterDetails.liquidity} &` +
-                           `24h Volume: ${twitterDetails.volume24Hours} (${twitterDetails.volume24HoursDeltaPercent}%) &` +
-                           `Followers Count: ${twitterDetails.followersCount} &` +
-                           `Smart Followers: ${twitterDetails.smartFollowersCount} &` +
-                           `Top Tweets: ${twitterDetails.topTweets.map((tweet: { text: any; }) => tweet.text).join(", ")} &` +
-                           `Twitter Usernames: ${twitterDetails.twitterUsernames.join(", ")}'`;
+                        `Market Cap: ${twitterDetails.marketCap} &` +
+                        `Mindshare: ${twitterDetails.mindshare} (${twitterDetails.mindshareDeltaPercent}%) &` +
+                        `Price: ${twitterDetails.price} (${twitterDetails.priceDeltaPercent}%) &` +
+                        `Liquidity: ${twitterDetails.liquidity} &` +
+                        `24h Volume: ${twitterDetails.volume24Hours} (${twitterDetails.volume24HoursDeltaPercent}%) &` +
+                        `Followers Count: ${twitterDetails.followersCount} &` +
+                        `Smart Followers: ${twitterDetails.smartFollowersCount} &` +
+                        `Top Tweets: ${twitterDetails.topTweets.map((tweet: { text: any; }) => tweet.text).join(", ")} &` +
+                        `Twitter Usernames: ${twitterDetails.twitterUsernames.join(", ")}'`;
                 } else {
                     body = "analyse this from cookies.fun 'No valid agent details found.'";
                 }
-    
+
+                console.log("Updated body with Twitter details:", body);
+            } catch (error) {
+                console.error("Failed to fetch Twitter agent:", error);
+                body = "analyse this from cookies.fun 'Failed to fetch Twitter details.'";
+            }
+        }
+
+
+        if (addressfetch) {
+            // Extract the Twitter username from the body (last word)
+            const addresss = Match[0];
+            console.log("Detected Twitter username:", addresss);
+
+            // Fetch Twitter username details
+            try {
+                const response = await axios.get(`http://localhost:3005/api/agents/contract/${addresss}`);
+
+                // Check what the response data contains
+                console.log("Fetched Twitter data:", response.data);
+
+                // Extract details from the response
+                const twitterDetails = response.data.ok;  // The 'ok' field contains the relevant details
+
+                if (twitterDetails) {
+                    // Construct the message with all the important details
+                    body = `Rewrite Here is the details from cookies.fun 'Agent Name: ${twitterDetails.agentName} &` +
+                        `Market Cap: ${twitterDetails.marketCap} &` +
+                        `Mindshare: ${twitterDetails.mindshare} (${twitterDetails.mindshareDeltaPercent}%) &` +
+                        `Price: ${twitterDetails.price} (${twitterDetails.priceDeltaPercent}%) &` +
+                        `Liquidity: ${twitterDetails.liquidity} &` +
+                        `24h Volume: ${twitterDetails.volume24Hours} (${twitterDetails.volume24HoursDeltaPercent}%) &` +
+                        `Followers Count: ${twitterDetails.followersCount} &` +
+                        `Smart Followers: ${twitterDetails.smartFollowersCount} &` +
+                        `Top Tweets: ${twitterDetails.topTweets.map((tweet: { text: any; }) => tweet.text).join(", ")} &` +
+                        `Twitter Usernames: ${twitterDetails.twitterUsernames.join(", ")}'`;
+                } else {
+                    body = "analyse this from cookies.fun 'No valid agent details found.'";
+                }
+
                 console.log("Updated body with Twitter details:", body);
             } catch (error) {
                 console.error("Failed to fetch Twitter agent:", error);
