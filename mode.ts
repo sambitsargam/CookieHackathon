@@ -90,7 +90,7 @@ app.use(bodyParser.json());
 
         try {
             const result = await generateText({
-                model: openai("gpt-4o-mini"),
+                model: openai("gpt-4o"),
                 tools: tools,
                 maxSteps: 10,
                 prompt: body,
