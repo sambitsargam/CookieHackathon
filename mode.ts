@@ -45,25 +45,66 @@ const twilioClient = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_A
             modespray(),
             coingecko({ apiKey: "CG-omKTqVxpPKToZaXWYBb8bCJJ" }),
             opensea(process.env.OPENSEA_API_KEY as string),
-           // pumpfun(),
-           modeGovernance(),
+            // pumpfun(),
+            modeGovernance(),
         ],
     });
 
     const app = express();
-// Parse URL-encoded bodies (as sent by HTML forms)
-app.use(bodyParser.urlencoded({ extended: true }));
+    // Parse URL-encoded bodies (as sent by HTML forms)
+    app.use(bodyParser.urlencoded({ extended: true }));
 
-// Parse JSON bodies (as sent by API clients)
-app.use(bodyParser.json());
+    // Parse JSON bodies (as sent by API clients)
+    app.use(bodyParser.json());
 
     app.post("/api/send-whatsapp", async (req, res) => {
         console.log("Headers:", req.headers);
-        console.log("Body:", req.body);  
+        console.log("Body:", req.body);
         const from = req.body.From;  // The sender's phone number
-        const body = req.body.Body;
-        console.log("Received WhatsApp message from", from, "with body:", body)
+        let body = req.body.Body;
 
+        console.log("Received WhatsApp message from", from, "with body:", body);
+
+        // Check if the body contains a Twitter username
+        const twitterUsernameMatch = body.match(/\b\w+\b$/); // Match last word in the body
+
+        if (twitterUsernameMatch) {
+            // Extract the Twitter username from the body (last word)
+            const twitterUsername = twitterUsernameMatch[0];
+            console.log("Detected Twitter username:", twitterUsername);
+    
+            // Fetch Twitter username details
+            try {
+                const response = await axios.get(`http://localhost:3005/api/agents/twitter/${twitterUsername}`);
+                
+                // Check what the response data contains
+                console.log("Fetched Twitter data:", response.data);
+    
+                // Extract details from the response
+                const twitterDetails = response.data.ok;  // The 'ok' field contains the relevant details
+                
+                if (twitterDetails) {
+                    // Construct the message with all the important details
+                    body = `Here is the details from cookies.fun 'Agent Name: ${twitterDetails.agentName} &` +
+                           `Market Cap: ${twitterDetails.marketCap} &` +
+                           `Mindshare: ${twitterDetails.mindshare} (${twitterDetails.mindshareDeltaPercent}%) &` +
+                           `Price: ${twitterDetails.price} (${twitterDetails.priceDeltaPercent}%) &` +
+                           `Liquidity: ${twitterDetails.liquidity} &` +
+                           `24h Volume: ${twitterDetails.volume24Hours} (${twitterDetails.volume24HoursDeltaPercent}%) &` +
+                           `Followers Count: ${twitterDetails.followersCount} &` +
+                           `Smart Followers: ${twitterDetails.smartFollowersCount} &` +
+                           `Top Tweets: ${twitterDetails.topTweets.map((tweet: { text: any; }) => tweet.text).join(", ")} &` +
+                           `Twitter Usernames: ${twitterDetails.twitterUsernames.join(", ")}'`;
+                } else {
+                    body = "analyse this from cookies.fun 'No valid agent details found.'";
+                }
+    
+                console.log("Updated body with Twitter details:", body);
+            } catch (error) {
+                console.error("Failed to fetch Twitter agent:", error);
+                body = "analyse this from cookies.fun 'Failed to fetch Twitter details.'";
+            }
+        }
         try {
             const result = await generateText({
                 model: openai("gpt-4o"),

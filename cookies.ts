@@ -5,7 +5,7 @@ const app = express();
 const port = process.env.PORT || 3005;
 
 // Add your API key here
-const API_KEY = 'fd9e5044-6129-482b-9a6a-d5ad9928dfcf';
+const API_KEY = process.env.COOKIE_KEY;
 const BASE_URL = 'https://api.cookie.fun/v2/agents';
 
 // Utility function for making API requests
