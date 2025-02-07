@@ -28,7 +28,7 @@ const account = privateKeyToAccount(process.env.KEY as `0x${string}`);
 
 const walletClient = createWalletClient({
     account: account,
-    transport: http(process.env.RPC_PROVIDER_URL),
+    transport: http(process.env.MRPC_PROVIDER_URL),
     chain: mode,
 });
 
